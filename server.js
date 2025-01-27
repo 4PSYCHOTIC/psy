@@ -17,11 +17,11 @@ const port = process.env.PORT || 3000;
 // Middleware to parse JSON and serve static files
 app.use(cors());
 app.use(bodyParser.json());
-app.use(express.static(path.join(__dirname, 'Public'))); // Serve static assets
+app.use(express.static(path.join(__dirname, 'public'))); // Serve static assets
 
 // Serve HTML files (e.g., index.html)
 app.get('/', (req, res) => {
-    res.sendFile(path.resolve(__dirname, 'Public', 'html', 'index.html')); // Adjusted path to index.html
+    res.sendFile(path.resolve(__dirname, 'public', 'html', 'index.html')); // Adjusted path to index.html
 });
 
 // Routes for material-related requests
