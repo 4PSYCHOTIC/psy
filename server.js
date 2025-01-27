@@ -17,7 +17,7 @@ const port = process.env.PORT || 3000;
 // Middleware to parse JSON and serve static files
 app.use(cors({
     app.use(cors({
-  origin: '*',
+  origin: '95.77.98.101/32',
   methods: ['GET', 'POST', 'PUT', 'DELETE'],
 }));
 app.use(bodyParser.json());
