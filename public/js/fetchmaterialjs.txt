@@ -1,0 +1,23 @@
+ // Function to populate material names in the datalist
+    async function populateMaterialList() {
+        try {
+            // Fetch material names from the server
+            const response = await fetch('http://localhost:3000/material');
+            const materialNames = await response.json();
+
+            // Clear existing suggestions
+            materialList.innerHTML = '';
+
+            // Populate the datalist with material names
+            materialNames.forEach(materialName => {
+                const option = document.createElement('option');
+                option.value = materialName;  // Use material name as the suggestion value
+                materialList.appendChild(option);
+            });
+        } catch (error) {
+            console.error('Error fetching material names:', error);
+        }
+    }
+
+    // Initial population of material list from the server
+    populateMaterialList();
