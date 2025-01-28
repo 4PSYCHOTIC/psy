@@ -26,9 +26,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const showElement = (element) => element.classList.remove('hidden');
     const hideElement = (element) => element.classList.add('hidden');
 
-    const formatDate = (dateString) => {
-        const date = new Date(dateString);
-        return date.toLocaleDateString(); // Better formatting to show only the date
+    const formatDate = (ISOString) => {
+        const date = new Date(ISOString);
+        return date.toISOString(); // Better formatting to show only the date
     };
 
     // Set current date in the date input
