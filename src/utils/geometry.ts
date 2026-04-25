@@ -11,6 +11,18 @@ export function distance(
   return Math.sqrt((x2 - x1) ** 2 + (y2 - y1) ** 2);
 }
 
+export function rotatePoint(
+  cx: number,
+  cy: number,
+  angle: number
+): { x: number; y: number } {
+  const rad = (angle * Math.PI) / 180;
+  return {
+    x: cx * Math.cos(rad) - cy * Math.sin(rad),
+    y: cx * Math.sin(rad) + cy * Math.cos(rad),
+  };
+}
+
 export function getWireColor(color: string): string {
   const colors: Record<string, string> = {
     brown: '#8B4513',

@@ -8,6 +8,7 @@ interface Props {
   panX: number;
   panY: number;
   zoom: number;
+  dotColor?: string;
 }
 
 const GridLayer: React.FC<Props> = ({
@@ -17,6 +18,7 @@ const GridLayer: React.FC<Props> = ({
   panX,
   panY,
   zoom,
+  dotColor = '#D1D5DB',
 }) => {
   const dots: { x: number; y: number }[] = [];
 
@@ -39,7 +41,7 @@ const GridLayer: React.FC<Props> = ({
           x={dot.x}
           y={dot.y}
           radius={1}
-          fill="#D1D5DB"
+          fill={dotColor}
         />
       ))}
     </Layer>

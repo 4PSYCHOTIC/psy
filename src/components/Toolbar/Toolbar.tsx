@@ -15,11 +15,18 @@ import {
   FiMaximize,
   FiPlay,
   FiRotateCw,
+  FiSun,
+  FiMoon,
 } from 'react-icons/fi';
 import { useCircuitStore } from '../../store/circuitStore';
+import { useThemeStore, themeColors } from '../../store/themeStore';
 import type { ToolMode } from '../../types';
 
 const Toolbar: React.FC = () => {
+  const theme = useThemeStore((s) => s.theme);
+  const toggleTheme = useThemeStore((s) => s.toggleTheme);
+  const tc = themeColors[theme];
+
   const {
     tool,
     setTool,
@@ -175,7 +182,7 @@ const Toolbar: React.FC = () => {
       className={`flex items-center gap-1 px-2 py-1.5 rounded text-xs transition-colors ${
         active
           ? 'bg-blue-600 text-white'
-          : 'text-gray-300 hover:bg-gray-700'
+          : `${tc.btnText} ${tc.itemHover}`
       }`}
       title={`${label}${shortcut ? ` (${shortcut})` : ''}`}
     >
@@ -185,11 +192,11 @@ const Toolbar: React.FC = () => {
   );
 
   const Divider = () => (
-    <div className="w-px h-5 bg-gray-700 mx-1" />
+    <div className={`w-px h-5 mx-1 ${theme === 'dark' ? 'bg-gray-700' : 'bg-gray-300'}`} />
   );
 
   return (
-    <div className="h-10 bg-[#1E1E2E] flex items-center px-2 gap-0.5 border-b border-gray-700 select-none">
+    <div className={`h-10 ${tc.toolbar} flex items-center px-2 gap-0.5 border-b ${tc.border} select-none shadow-sm`}>
       <ToolBtn
         icon={<FiFile />}
         label="New"
@@ -299,9 +306,17 @@ const Toolbar: React.FC = () => {
         onClick={runSimulation}
       />
 
+      <Divider />
+
+      <ToolBtn
+        icon={theme === 'dark' ? <FiSun /> : <FiMoon />}
+        label={theme === 'dark' ? 'Light' : 'Dark'}
+        onClick={toggleTheme}
+      />
+
       <div className="flex-1" />
 
-      <span className="text-gray-500 text-xs mr-2">
+      <span className={`${tc.textMuted} text-xs mr-2`}>
         ⚡ ElectroSim
       </span>
     </div>

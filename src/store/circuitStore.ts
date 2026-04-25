@@ -13,6 +13,7 @@ import type {
 } from '../types';
 import { engine } from '../simulation/engine';
 import { v4 as uuid } from 'uuid';
+import { rotatePoint } from '../utils/geometry';
 
 function createConnectionPoints(
   componentId: string,
@@ -196,6 +197,7 @@ interface CircuitStore {
   duplicateComponent: (id: string) => void;
 
   addWire: (wire: Omit<Wire, 'id'>) => void;
+  updateWire: (id: string, updates: Partial<Wire>) => void;
   removeWire: (id: string) => void;
   startWire: (componentId: string, pointId: string) => void;
   addWirePoint: (x: number, y: number) => void;
@@ -349,6 +351,20 @@ export const useCircuitStore = create<CircuitStore>((set, get) => ({
     get().runSimulation();
   },
 
+  updateWire: (id, updates) => {
+    set((state) => ({
+      circuit: {
+        ...state.circuit,
+        wires: state.circuit.wires.map((w) =>
+          w.id === id ? { ...w, ...updates } : w
+        ),
+        updatedAt: new Date().toISOString(),
+      },
+    }));
+    get().pushHistory('Updated wire');
+    get().runSimulation();
+  },
+
   removeWire: (id) => {
     set((state) => ({
       circuit: {
@@ -368,8 +384,9 @@ export const useCircuitStore = create<CircuitStore>((set, get) => ({
     if (!comp) return;
     const point = comp.connectionPoints.find((p) => p.id === pointId);
     if (!point) return;
-    const absX = comp.x + point.x;
-    const absY = comp.y + point.y;
+    const rotated = rotatePoint(point.x, point.y, comp.rotation);
+    const absX = comp.x + rotated.x;
+    const absY = comp.y + rotated.y;
     set({
       wireInProgress: {
         fromComponentId: componentId,
@@ -404,8 +421,9 @@ export const useCircuitStore = create<CircuitStore>((set, get) => ({
     const point = comp.connectionPoints.find((p) => p.id === pointId);
     if (!point) return;
 
-    const absX = comp.x + point.x;
-    const absY = comp.y + point.y;
+    const rotated = rotatePoint(point.x, point.y, comp.rotation);
+    const absX = comp.x + rotated.x;
+    const absY = comp.y + rotated.y;
     const allPoints = [...get().wirePoints, absX, absY];
 
     get().addWire({
@@ -447,8 +465,10 @@ export const useCircuitStore = create<CircuitStore>((set, get) => ({
     })),
 
   runSimulation: () => {
-    const result = engine.simulate(get().circuit);
+    const clonedCircuit = structuredClone(get().circuit);
+    const result = engine.simulate(clonedCircuit);
     set({
+      circuit: clonedCircuit,
       simulationResult: result,
       faultDialogEvent:
         result.faults.length > 0 ? result.faults[0] : null,

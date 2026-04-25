@@ -1,13 +1,30 @@
 import React from 'react';
 import { useCircuitStore } from '../../store/circuitStore';
-import type { ComponentProperties } from '../../types';
+import { useThemeStore, themeColors } from '../../store/themeStore';
+import type { ComponentProperties, WireColor } from '../../types';
+import { getWireColor } from '../../utils/geometry';
+
+const WIRE_COLORS: { value: WireColor; label: string }[] = [
+  { value: 'brown', label: 'Brown (L)' },
+  { value: 'blue', label: 'Blue (N)' },
+  { value: 'green_yellow', label: 'Green-Yellow (PE)' },
+  { value: 'black', label: 'Black' },
+  { value: 'grey', label: 'Grey' },
+  { value: 'red', label: 'Red' },
+];
+
+const CROSS_SECTIONS = [1.5, 2.5, 4, 6, 10];
 
 const PropertyPanel: React.FC = () => {
+  const theme = useThemeStore((s) => s.theme);
+  const tc = themeColors[theme];
+
   const {
     circuit,
     selectedId,
     simulationResult,
     updateComponent,
+    updateWire,
     toggleComponent,
     resetTripped,
     removeComponent,
@@ -25,8 +42,8 @@ const PropertyPanel: React.FC = () => {
 
   if (!selectedComp && !selectedWire) {
     return (
-      <div className="w-72 bg-[#1E1E2E] text-gray-300 p-4 flex flex-col items-center justify-center">
-        <p className="text-sm text-gray-500">Select a component</p>
+      <div className={`w-72 ${tc.panel} ${tc.text} p-4 flex flex-col items-center justify-center border-l ${tc.border}`}>
+        <p className={`text-sm ${tc.textMuted}`}>Select a component</p>
       </div>
     );
   }
@@ -369,6 +386,76 @@ const PropertyPanel: React.FC = () => {
     </>
   );
 
+  const renderWireProps = () => {
+    if (!selectedWire) return null;
+    return (
+      <>
+        <Label text="Wire Color">
+          <div className="space-y-1.5">
+            {WIRE_COLORS.map((wc) => (
+              <button
+                key={wc.value}
+                onClick={() =>
+                  updateWire(selectedWire.id, { color: wc.value })
+                }
+                className={`flex items-center gap-2 w-full px-2 py-1.5 rounded text-xs transition-colors ${
+                  selectedWire.color === wc.value
+                    ? 'ring-2 ring-blue-500 bg-blue-600/20'
+                    : `${tc.btnBg} ${tc.btnHover}`
+                }`}
+              >
+                <span
+                  className="w-4 h-4 rounded-sm border border-gray-500 inline-block"
+                  style={{ backgroundColor: getWireColor(wc.value) }}
+                />
+                <span className={tc.text}>{wc.label}</span>
+              </button>
+            ))}
+          </div>
+        </Label>
+        <Label text="Cross Section">
+          <select
+            value={selectedWire.crossSection}
+            onChange={(e) =>
+              updateWire(selectedWire.id, {
+                crossSection: Number(e.target.value),
+              })
+            }
+            className="input-field"
+          >
+            {CROSS_SECTIONS.map((cs) => (
+              <option key={cs} value={cs}>
+                {cs} mm²
+              </option>
+            ))}
+          </select>
+        </Label>
+        <Label text="Energized">
+          <span
+            className={`text-xs font-medium ${
+              selectedWire.energized
+                ? 'text-green-400'
+                : tc.textMuted
+            }`}
+          >
+            {selectedWire.energized ? 'YES' : 'NO'}
+          </span>
+        </Label>
+        <Label text="Current">
+          <span className={`text-xs ${tc.text}`}>
+            {selectedWire.currentAmps.toFixed(2)}A
+          </span>
+        </Label>
+        <button
+          onClick={() => useCircuitStore.getState().removeWire(selectedWire.id)}
+          className="w-full px-3 py-2 bg-red-700 text-white rounded text-xs font-medium hover:bg-red-600 mt-2"
+        >
+          Delete Wire
+        </button>
+      </>
+    );
+  };
+
   const renderTypeSpecificProps = () => {
     if (!selectedComp) return null;
     switch (selectedComp.type) {
@@ -394,9 +481,9 @@ const PropertyPanel: React.FC = () => {
   };
 
   return (
-    <div className="w-72 bg-[#1E1E2E] text-gray-300 flex flex-col overflow-y-auto">
-      <div className="px-3 py-3 border-b border-gray-700">
-        <h2 className="text-sm font-bold text-white">Properties</h2>
+    <div className={`w-72 ${tc.panel} ${tc.text} flex flex-col overflow-y-auto border-l ${tc.border}`}>
+      <div className={`px-3 py-3 border-b ${tc.border}`}>
+        <h2 className={`text-sm font-bold ${tc.textBright}`}>Properties</h2>
       </div>
 
       <div className="flex-1 overflow-y-auto p-3 space-y-3">
@@ -416,7 +503,7 @@ const PropertyPanel: React.FC = () => {
             </Label>
 
             <Label text="Type">
-              <span className="text-xs text-gray-400 capitalize">
+              <span className={`text-xs ${tc.textMuted} capitalize`}>
                 {selectedComp.type.replace(/_/g, ' ')}
               </span>
             </Label>
@@ -426,13 +513,13 @@ const PropertyPanel: React.FC = () => {
             <div className="flex gap-1 pt-2">
               <button
                 onClick={() => rotateComponent(selectedComp.id)}
-                className="flex-1 px-2 py-1.5 bg-gray-700 text-gray-300 rounded text-xs hover:bg-gray-600"
+                className={`flex-1 px-2 py-1.5 ${tc.btnBg} ${tc.btnText} rounded text-xs ${tc.btnHover}`}
               >
                 Rotate
               </button>
               <button
                 onClick={() => duplicateComponent(selectedComp.id)}
-                className="flex-1 px-2 py-1.5 bg-gray-700 text-gray-300 rounded text-xs hover:bg-gray-600"
+                className={`flex-1 px-2 py-1.5 ${tc.btnBg} ${tc.btnText} rounded text-xs ${tc.btnHover}`}
               >
                 Duplicate
               </button>
@@ -446,57 +533,33 @@ const PropertyPanel: React.FC = () => {
           </>
         )}
 
-        {selectedWire && (
-          <>
-            <Label text="Wire">
-              <span className="text-xs text-gray-400">
-                Wire #{selectedWire.id.slice(0, 8)}
-              </span>
-            </Label>
-            <Label text="Energized">
-              <span
-                className={`text-xs font-medium ${
-                  selectedWire.energized
-                    ? 'text-green-400'
-                    : 'text-gray-500'
-                }`}
-              >
-                {selectedWire.energized ? 'YES' : 'NO'}
-              </span>
-            </Label>
-            <Label text="Current">
-              <span className="text-xs text-gray-400">
-                {selectedWire.currentAmps.toFixed(2)}A
-              </span>
-            </Label>
-          </>
-        )}
+        {selectedWire && renderWireProps()}
       </div>
 
       {nodeResult && (
-        <div className="p-3 border-t border-gray-700 space-y-1">
-          <h3 className="text-xs font-semibold text-gray-400 uppercase">
+        <div className={`p-3 border-t ${tc.border} space-y-1`}>
+          <h3 className={`text-xs font-semibold ${tc.textMuted} uppercase`}>
             Simulation
           </h3>
           <div className="grid grid-cols-2 gap-1 text-xs">
-            <span className="text-gray-500">Voltage:</span>
+            <span className={tc.textMuted}>Voltage:</span>
             <span>{nodeResult.voltageV.toFixed(1)}V</span>
-            <span className="text-gray-500">Current:</span>
+            <span className={tc.textMuted}>Current:</span>
             <span>{nodeResult.currentA.toFixed(2)}A</span>
-            <span className="text-gray-500">Power:</span>
+            <span className={tc.textMuted}>Power:</span>
             <span>{nodeResult.powerW.toFixed(1)}W</span>
             {nodeResult.powerFactor !== undefined && (
               <>
-                <span className="text-gray-500">PF:</span>
+                <span className={tc.textMuted}>PF:</span>
                 <span>{nodeResult.powerFactor.toFixed(2)}</span>
               </>
             )}
-            <span className="text-gray-500">Status:</span>
+            <span className={tc.textMuted}>Status:</span>
             <span
               className={
                 nodeResult.energized
                   ? 'text-green-400 font-medium'
-                  : 'text-gray-500'
+                  : tc.textMuted
               }
             >
               {nodeResult.energized ? 'ENERGIZED' : 'DE-ENERGIZED'}

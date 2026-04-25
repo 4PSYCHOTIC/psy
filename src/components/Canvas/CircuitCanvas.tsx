@@ -2,6 +2,7 @@ import React, { useRef, useState, useCallback, useEffect } from 'react';
 import { Stage, Layer } from 'react-konva';
 import Konva from 'konva';
 import { useCircuitStore } from '../../store/circuitStore';
+import { useThemeStore, themeColors } from '../../store/themeStore';
 import GridLayer from './GridLayer';
 import WireLayer from './WireLayer';
 import SwitchSymbol from '../Components/SwitchSymbol';
@@ -14,13 +15,16 @@ import PowerSourceSymbol from '../Components/PowerSourceSymbol';
 import JunctionSymbol from '../Components/JunctionSymbol';
 import ControlSymbol from '../Components/ControlSymbol';
 import type { CircuitComponent, ComponentType } from '../../types';
-import { snapToGrid, distance } from '../../utils/geometry';
+import { snapToGrid, distance, rotatePoint } from '../../utils/geometry';
 
 const CircuitCanvas: React.FC = () => {
   const stageRef = useRef<Konva.Stage>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const [dimensions, setDimensions] = useState({ width: 800, height: 600 });
   const [cursorPos, setCursorPos] = useState<{ x: number; y: number } | null>(null);
+
+  const theme = useThemeStore((s) => s.theme);
+  const tc = themeColors[theme];
 
   const {
     circuit,
@@ -82,8 +86,9 @@ const CircuitCanvas: React.FC = () => {
 
       for (const comp of circuit.components) {
         for (const cp of comp.connectionPoints) {
-          const absX = comp.x + cp.x;
-          const absY = comp.y + cp.y;
+          const rotated = rotatePoint(cp.x, cp.y, comp.rotation);
+          const absX = comp.x + rotated.x;
+          const absY = comp.y + rotated.y;
           const dist = distance(x, y, absX, absY);
           if (dist < 15 && (!nearest || dist < nearest.dist)) {
             nearest = {
@@ -319,7 +324,8 @@ const CircuitCanvas: React.FC = () => {
   return (
     <div
       ref={containerRef}
-      className="circuit-canvas-container flex-1 bg-gray-50 overflow-hidden"
+      className={`circuit-canvas-container flex-1 overflow-hidden`}
+      style={{ backgroundColor: tc.canvasHex }}
       onDragOver={(e) => e.preventDefault()}
       onDrop={handleDrop}
     >
@@ -348,6 +354,7 @@ const CircuitCanvas: React.FC = () => {
           panX={circuit.panX}
           panY={circuit.panY}
           zoom={circuit.zoom}
+          dotColor={tc.gridDot}
         />
 
         <WireLayer

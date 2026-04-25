@@ -1,5 +1,6 @@
 import React from 'react';
 import type { ComponentType } from '../../types';
+import { useThemeStore, themeColors } from '../../store/themeStore';
 import {
   FiZap,
   FiShield,
@@ -87,6 +88,9 @@ const GROUPS: ComponentGroup[] = [
 ];
 
 const Sidebar: React.FC = () => {
+  const theme = useThemeStore((s) => s.theme);
+  const tc = themeColors[theme];
+
   const handleDragStart = (
     e: React.DragEvent,
     type: ComponentType
@@ -96,16 +100,16 @@ const Sidebar: React.FC = () => {
   };
 
   return (
-    <div className="w-56 bg-[#1E1E2E] text-gray-200 flex flex-col overflow-y-auto select-none">
-      <div className="px-3 py-3 border-b border-gray-700">
-        <h2 className="text-sm font-bold text-white tracking-wide">
+    <div className={`w-56 ${tc.sidebar} ${tc.text} flex flex-col overflow-y-auto select-none border-r ${tc.border}`}>
+      <div className={`px-3 py-3 border-b ${tc.border}`}>
+        <h2 className={`text-sm font-bold ${tc.textBright} tracking-wide`}>
           Components
         </h2>
       </div>
       <div className="flex-1 overflow-y-auto py-1">
         {GROUPS.map((group) => (
           <div key={group.name} className="mb-1">
-            <div className="px-3 py-1.5 text-xs font-semibold text-gray-400 uppercase tracking-wider">
+            <div className={`px-3 py-1.5 text-xs font-semibold ${tc.groupLabel} uppercase tracking-wider`}>
               {group.emoji} {group.name}
             </div>
             {group.items.map((item, idx) => (
@@ -113,17 +117,17 @@ const Sidebar: React.FC = () => {
                 key={`${item.type}-${idx}`}
                 draggable
                 onDragStart={(e) => handleDragStart(e, item.type)}
-                className="flex items-center gap-2 px-3 py-1.5 mx-1 rounded cursor-grab hover:bg-gray-700/50 transition-colors active:cursor-grabbing"
+                className={`flex items-center gap-2 px-3 py-1.5 mx-1 rounded cursor-grab ${tc.itemHover} transition-colors active:cursor-grabbing`}
               >
-                <span className="text-base text-gray-400">
+                <span className={`text-base ${tc.groupLabel}`}>
                   {item.icon}
                 </span>
                 <div className="flex flex-col">
-                  <span className="text-xs text-gray-200">
+                  <span className={`text-xs ${tc.text}`}>
                     {item.label}
                   </span>
                   {item.detail && (
-                    <span className="text-[10px] text-gray-500">
+                    <span className={`text-[10px] ${tc.textMuted}`}>
                       {item.detail}
                     </span>
                   )}
