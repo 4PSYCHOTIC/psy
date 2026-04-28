@@ -140,9 +140,9 @@ export class CircuitEngine {
       case 'lamp':
       case 'heater':
       case 'generic_load':
-        return (p.powerWatts || 60) / (voltage * pf);
+        return (p.powerWatts ?? 60) / (voltage * pf);
       case 'motor':
-        return ((p.powerWatts || 1000) / (voltage * pf)) * 1.25;
+        return ((p.powerWatts ?? 1000) / (voltage * pf)) * 1.25;
       case 'socket':
         return p.powerWatts ? p.powerWatts / (voltage * pf) : 0;
       case 'mcb':

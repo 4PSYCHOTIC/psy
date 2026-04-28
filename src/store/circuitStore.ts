@@ -280,6 +280,8 @@ export const useCircuitStore = create<CircuitStore>((set, get) => ({
       'push_button',
       'contactor',
       'relay',
+      'timer',
+      'overload_relay',
     ];
     if (toggleable.includes(comp.type) && comp.state !== 'tripped') {
       const newState = comp.state === 'on' ? 'off' : 'on';
@@ -336,7 +338,7 @@ export const useCircuitStore = create<CircuitStore>((set, get) => ({
   duplicateComponent: (id) => {
     const comp = get().circuit.components.find((c) => c.id === id);
     if (!comp) return;
-    get().addComponent(comp.type, comp.x + 60, comp.y + 60);
+    get().addComponent(comp.type, comp.x + 60, comp.y + 60, comp.properties, comp.label);
   },
 
   addWire: (wire) => {
