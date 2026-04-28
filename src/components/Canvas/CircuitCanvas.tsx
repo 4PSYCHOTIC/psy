@@ -181,10 +181,17 @@ const CircuitCanvas: React.FC = () => {
       const x = (e.clientX - rect.left - circuit.panX) / circuit.zoom;
       const y = (e.clientY - rect.top - circuit.panY) / circuit.zoom;
 
+      const propsStr = e.dataTransfer.getData('componentProps');
+      const labelStr = e.dataTransfer.getData('componentLabel');
+      const propOverrides = propsStr ? JSON.parse(propsStr) : undefined;
+      const labelOverride = labelStr || undefined;
+
       addComponent(
         type,
         snapToGrid(x, circuit.gridSize),
-        snapToGrid(y, circuit.gridSize)
+        snapToGrid(y, circuit.gridSize),
+        propOverrides,
+        labelOverride
       );
     },
     [addComponent, circuit.panX, circuit.panY, circuit.zoom, circuit.gridSize]

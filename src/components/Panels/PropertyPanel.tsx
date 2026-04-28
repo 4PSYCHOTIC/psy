@@ -278,13 +278,13 @@ const PropertyPanel: React.FC = () => {
           onChange={(e) =>
             updateProp({
               powerFactor: Math.max(
-                0,
+                0.01,
                 Math.min(1, Number(e.target.value))
               ),
             })
           }
           className="input-field"
-          min={0}
+          min={0.01}
           max={1}
           step={0.01}
         />

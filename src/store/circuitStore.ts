@@ -184,7 +184,7 @@ interface CircuitStore {
   historyIndex: number;
   faultDialogEvent: FaultEvent | null;
 
-  addComponent: (type: ComponentType, x: number, y: number) => void;
+  addComponent: (type: ComponentType, x: number, y: number, propOverrides?: Partial<ComponentProperties>, labelOverride?: string) => void;
   updateComponent: (
     id: string,
     updates: Partial<CircuitComponent>
@@ -232,19 +232,19 @@ export const useCircuitStore = create<CircuitStore>((set, get) => ({
   historyIndex: -1,
   faultDialogEvent: null,
 
-  addComponent: (type, x, y) => {
+  addComponent: (type, x, y, propOverrides, labelOverride) => {
     const id = uuid();
     const newComp: CircuitComponent = {
       id,
       type,
-      label: getDefaultLabel(type),
+      label: labelOverride || getDefaultLabel(type),
       x,
       y,
       rotation: 0,
-      state: type === 'power_source' ? 'on' : 'off',
+      state: (['switch','push_button','mcb','rcd','contactor','relay','timer','overload_relay'] as string[]).includes(type) ? 'off' : 'on',
       selected: false,
       connectionPoints: createConnectionPoints(id, type),
-      properties: getDefaultProperties(type),
+      properties: { ...getDefaultProperties(type), ...propOverrides },
     };
     set((state) => ({
       circuit: {

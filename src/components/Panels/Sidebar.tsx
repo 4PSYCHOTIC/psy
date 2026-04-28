@@ -1,5 +1,5 @@
 import React from 'react';
-import type { ComponentType } from '../../types';
+import type { ComponentType, ComponentProperties } from '../../types';
 import { useThemeStore, themeColors } from '../../store/themeStore';
 import {
   FiZap,
@@ -16,6 +16,7 @@ interface ComponentItem {
   label: string;
   icon: React.ReactNode;
   detail?: string;
+  properties?: Partial<ComponentProperties>;
 }
 
 interface ComponentGroup {
@@ -30,20 +31,20 @@ const GROUPS: ComponentGroup[] = [
     emoji: '⚡',
     items: [
       { type: 'power_source', label: 'AC Source 230V', icon: <FiZap /> },
-      { type: 'busbar', label: 'Busbar (L)', icon: <FiActivity />, detail: 'Live' },
-      { type: 'busbar', label: 'Busbar (N)', icon: <FiActivity />, detail: 'Neutral' },
-      { type: 'busbar', label: 'Busbar (PE)', icon: <FiActivity />, detail: 'Earth' },
+      { type: 'busbar', label: 'Busbar (L)', icon: <FiActivity />, detail: 'Live', properties: { wireColor: 'brown' } },
+      { type: 'busbar', label: 'Busbar (N)', icon: <FiActivity />, detail: 'Neutral', properties: { wireColor: 'blue' } },
+      { type: 'busbar', label: 'Busbar (PE)', icon: <FiActivity />, detail: 'Earth', properties: { wireColor: 'green_yellow' } },
     ],
   },
   {
     name: 'Protection',
     emoji: '🛡️',
     items: [
-      { type: 'mcb', label: 'MCB 6A', icon: <FiShield />, detail: '6A' },
-      { type: 'mcb', label: 'MCB 10A', icon: <FiShield />, detail: '10A' },
-      { type: 'mcb', label: 'MCB 16A', icon: <FiShield />, detail: '16A' },
-      { type: 'mcb', label: 'MCB 32A', icon: <FiShield />, detail: '32A' },
-      { type: 'rcd', label: 'RCD 30mA', icon: <FiShield />, detail: '30mA' },
+      { type: 'mcb', label: 'MCB 6A', icon: <FiShield />, detail: '6A', properties: { ratingAmps: 6 } },
+      { type: 'mcb', label: 'MCB 10A', icon: <FiShield />, detail: '10A', properties: { ratingAmps: 10 } },
+      { type: 'mcb', label: 'MCB 16A', icon: <FiShield />, detail: '16A', properties: { ratingAmps: 16 } },
+      { type: 'mcb', label: 'MCB 32A', icon: <FiShield />, detail: '32A', properties: { ratingAmps: 32 } },
+      { type: 'rcd', label: 'RCD 30mA', icon: <FiShield />, detail: '30mA', properties: { rcdSensitivity: 30 } },
       { type: 'overload_relay', label: 'Overload Relay', icon: <FiShield /> },
     ],
   },
@@ -51,10 +52,10 @@ const GROUPS: ComponentGroup[] = [
     name: 'Controls',
     emoji: '🎛️',
     items: [
-      { type: 'switch', label: 'Switch (SPST)', icon: <FiToggleLeft /> },
-      { type: 'switch', label: 'Switch (DPST)', icon: <FiToggleLeft />, detail: 'DPST' },
-      { type: 'push_button', label: 'Push Button NO', icon: <FiCircle />, detail: 'NO' },
-      { type: 'push_button', label: 'Push Button NC', icon: <FiCircle />, detail: 'NC' },
+      { type: 'switch', label: 'Switch (SPST)', icon: <FiToggleLeft />, properties: { switchType: 'SPST' } },
+      { type: 'switch', label: 'Switch (DPST)', icon: <FiToggleLeft />, detail: 'DPST', properties: { switchType: 'DPST', poles: 2 } },
+      { type: 'push_button', label: 'Push Button NO', icon: <FiCircle />, detail: 'NO', properties: { buttonType: 'NO' } },
+      { type: 'push_button', label: 'Push Button NC', icon: <FiCircle />, detail: 'NC', properties: { buttonType: 'NC' } },
       { type: 'contactor', label: 'Contactor', icon: <FiToggleLeft /> },
       { type: 'relay', label: 'Relay', icon: <FiToggleLeft /> },
       { type: 'timer', label: 'Timer', icon: <FiToggleLeft /> },
@@ -64,8 +65,8 @@ const GROUPS: ComponentGroup[] = [
     name: 'Outlets',
     emoji: '🔌',
     items: [
-      { type: 'socket', label: 'Socket 16A', icon: <FiCircle /> },
-      { type: 'socket', label: 'Socket 32A', icon: <FiCircle />, detail: 'Heavy Duty' },
+      { type: 'socket', label: 'Socket 16A', icon: <FiCircle />, properties: { ratingAmps: 16 } },
+      { type: 'socket', label: 'Socket 32A', icon: <FiCircle />, detail: 'Heavy Duty', properties: { ratingAmps: 32 } },
     ],
   },
   {
@@ -93,9 +94,15 @@ const Sidebar: React.FC = () => {
 
   const handleDragStart = (
     e: React.DragEvent,
-    type: ComponentType
+    item: ComponentItem
   ) => {
-    e.dataTransfer.setData('componentType', type);
+    e.dataTransfer.setData('componentType', item.type);
+    if (item.properties) {
+      e.dataTransfer.setData('componentProps', JSON.stringify(item.properties));
+    }
+    if (item.label) {
+      e.dataTransfer.setData('componentLabel', item.label);
+    }
     e.dataTransfer.effectAllowed = 'copy';
   };
 
@@ -116,7 +123,7 @@ const Sidebar: React.FC = () => {
               <div
                 key={`${item.type}-${idx}`}
                 draggable
-                onDragStart={(e) => handleDragStart(e, item.type)}
+                onDragStart={(e) => handleDragStart(e, item)}
                 className={`flex items-center gap-2 px-3 py-1.5 mx-1 rounded cursor-grab ${tc.itemHover} transition-colors active:cursor-grabbing`}
               >
                 <span className={`text-base ${tc.groupLabel}`}>
